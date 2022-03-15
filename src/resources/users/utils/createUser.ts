@@ -1,9 +1,12 @@
-import { UserModel, UserToResponse } from '../user.model';
+import { User, UserDB, UserToResponse } from '../user.model';
 
-export const createUser = (
-  data: UserModel
+export const createUserDB = async (
+  data: User
 ): Promise<UserToResponse | undefined> => {
-  return new Promise((resolve) =>
-    resolve({ id: '1', name: 'ddd', login: 'eee' })
-  );
+  const user = await UserDB.create(data);
+  if (user) {
+    return user;
+  } else {
+    throw new Error('Can not create user');
+  }
 };

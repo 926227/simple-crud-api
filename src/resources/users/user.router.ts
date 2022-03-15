@@ -1,33 +1,53 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import { Router } from 'express';
-import { User } from './user.model';
 import { userService } from './user.service';
-// import usersService from './user.service';
 
 export const usersRouter = Router();
 
 usersRouter
   .route('/')
   .get(async (req, res) => {
-    const users = await userService.getAllUsers.run();
-    res.json(users);
-
-    // const users = await usersService.getAll();
-    // map user fields to exclude secret fields like "password"
-    // res.json(users.map(User.toResponse));
+    try {
+      const users = await userService.getAllUsers();
+      res.json(users);
+    } catch (e) {
+      res.status(400).send((e as Error).message);
+    }
   })
   .post(async (req, res) => {
-    const user = await userService.createUser.run({
-      id: '1',
-      name: 'ddd',
-      login: 'eee',
-      password: 'dfdfdf',
-    });
-    res.json(user);
+    try {
+      const user = await userService.createUser(req.body);
+      res.json(user);
+    } catch (e) {
+      res.status(400).send((e as Error).message);
+    }
   });
 
 usersRouter
   .route('/:userId')
-  .get(async (req, res) => {})
-  .put(async (req, res) => {})
-  .delete(async (req, res) => {});
+  .get(async (req, res) => {
+    try {
+      const result = await userService.getUser(req.params.userId);
+      res.json(result);
+    } catch (e) {
+      res.status(400).send((e as Error).message);
+    }
+  })
+  .put(async (req, res) => {
+    try {
+      const result = await userService.updateUser({
+        _id: req.params.userId,
+        ...req.body,
+      });
+      res.json(result);
+    } catch (e) {
+      res.status(400).send((e as Error).message);
+    }
+  })
+  .delete(async (req, res) => {
+    try {
+      const result = await userService.deleteUser(req.params.userId);
+      res.json(result);
+    } catch (e) {
+      res.status(400).send((e as Error).message);
+    }
+  });

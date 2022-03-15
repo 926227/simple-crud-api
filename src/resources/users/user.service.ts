@@ -1,28 +1,22 @@
 import { ServiceNoRequest, ServiceWithRequest } from '../Service';
-import usersRepo from './user.memory.repository';
-import { UserModel, UserToResponse } from './user.model';
 import {
+  getAllUsersDB,
+  getUserDB,
+  createUserDB,
+  updateUserDB,
+  deleteUserDB,
+} from './utils';
+
+const getAllUsers = new ServiceNoRequest(getAllUsersDB).run;
+const getUser = new ServiceWithRequest(getUserDB).run;
+const createUser = new ServiceWithRequest(createUserDB).run;
+const updateUser = new ServiceWithRequest(updateUserDB).run;
+const deleteUser = new ServiceWithRequest(deleteUserDB).run;
+
+export const userService = {
   getAllUsers,
   getUser,
   createUser,
   updateUser,
   deleteUser,
-} from './utils';
-
-const getAllUsersService = new ServiceNoRequest<Array<UserToResponse>>(
-  getAllUsers
-);
-// const getUserService = new Service(getUser);
-const createUserService = new ServiceWithRequest<UserModel, UserToResponse>(
-  createUser
-);
-// const updateUserService = new Service(updateUser);
-// const deleteUserService = new Service(deleteUser);
-
-export const userService = {
-  getAllUsers: getAllUsersService,
-  // getUser: getUserService,
-  createUser: createUserService,
-  // updateUser: updateUserService,
-  // deleteUser: deleteUserService,
 };

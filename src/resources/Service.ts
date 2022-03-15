@@ -1,60 +1,46 @@
-type FuncWithData<reqT, resT> = (data: reqT) => Promise<resT | undefined>;
-type FuncWithNoData<resT> = () => Promise<resT | undefined>;
-
-// type MainFunction<reqT, resT> = FuncWithData<reqT, resT> | FuncWithNoData<resT>;
-
-// abstract class AbstractService {
-//   abstract mainFunction: Function;
-//   abstract middlewares: [];
-//   abstract run: Function;
-//   abstract use: Function;
-// }
+type FuncWithData<requestT, responseT> = (
+  data: requestT
+) => Promise<responseT | undefined>;
+type FuncWithNoData<requestT> = () => Promise<requestT | undefined>;
 
 class Service {
+  private mainFunction: Function;
   protected middlewares: Array<() => Promise<void>> = [];
+
+  constructor(mainFunction: Function) {
+    this.mainFunction = mainFunction;
+  }
 
   public use = (func: () => Promise<void>): void => {
     this.middlewares.push(func);
   };
 
-  protected runMainFunction = async (
-    mainFunction: Function,
-    data?: any
-  ): Promise<any> => {
-    let result;
+  public run = (data: any): Promise<any> => {
+    throw new Error('Method <run> is not implemlemented ');
+  };
 
-    try {
-      this.middlewares.forEach(async (middleware) => await middleware());
-      result = await mainFunction(data);
-    } catch (e) {
-      console.log((e as Error).message);
-    }
-    return result;
+  protected runMainFunction = async (data?: any): Promise<any> => {
+    this.middlewares.forEach(async (middleware) => await middleware());
+    return await this.mainFunction(data);
   };
 }
 
-export class ServiceNoRequest<resT> extends Service {
-  private mainFunction: FuncWithNoData<resT>;
-
-  constructor(mainFunction: FuncWithNoData<resT>) {
-    super();
-    this.mainFunction = mainFunction;
+export class ServiceNoRequest<responseT> extends Service {
+  constructor(mainFunction: FuncWithNoData<responseT>) {
+    super(mainFunction);
   }
 
-  public run = async (): Promise<resT | undefined> => {
-    return this.runMainFunction(this.mainFunction);
+  public run = async (): Promise<responseT | undefined> => {
+    return await this.runMainFunction();
   };
 }
 
-export class ServiceWithRequest<reqT, resT> extends Service {
-  private mainFunction: FuncWithData<reqT, resT>;
-
-  constructor(mainFunction: FuncWithData<reqT, resT>) {
-    super();
-    this.mainFunction = mainFunction;
+export class ServiceWithRequest<requestT, responseT> extends Service {
+  constructor(mainFunction: FuncWithData<requestT, responseT>) {
+    super(mainFunction);
   }
 
-  public run = async (data: reqT): Promise<resT | undefined> => {
-    return this.runMainFunction(this.mainFunction, data);
+  public run = async (data: requestT): Promise<responseT | undefined> => {
+    return await this.runMainFunction(data);
   };
 }
