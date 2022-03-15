@@ -1,6 +1,7 @@
 import express from 'express';
 // import swaggerUI from 'swagger-ui-express';
 import path from 'path';
+import { boardsRouter } from './resources/boards/boards.router';
 // import YAML from 'yamljs';
 import { usersRouter } from './resources/users/user.router';
 
@@ -20,5 +21,6 @@ app.use('/', (req, res, next) => {
 });
 
 app.use('/users', usersRouter);
+app.use('/boards', boardsRouter);
 
 export default app;

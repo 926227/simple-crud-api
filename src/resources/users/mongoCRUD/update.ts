@@ -1,6 +1,6 @@
 import { User, UserDB } from '../user.model';
 
-export const updateUserDB = async (user: Partial<User>): Promise<User> => {
+export const update = async (user: Partial<User>): Promise<User> => {
   const userUpdated = await UserDB.findByIdAndUpdate(user._id, user, {
     returnDocument: 'after',
   });
