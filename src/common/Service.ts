@@ -43,7 +43,7 @@ class Service {
   };
 }
 
-class ServiceNoRequest<responseT> extends Service {
+export class ServiceNoRequest<responseT> extends Service {
   constructor(mainFunction: FuncWithNoData<responseT>) {
     super(mainFunction);
   }
@@ -53,7 +53,7 @@ class ServiceNoRequest<responseT> extends Service {
   };
 }
 
-class ServiceWithRequest<requestT, responseT> extends Service {
+export class ServiceWithRequest<requestT, responseT> extends Service {
   constructor(mainFunction: FuncWithData<requestT, responseT>) {
     super(mainFunction);
   }

@@ -1,7 +1,10 @@
 import { Router } from 'express';
+import { tasksRouter } from '../tasks/tasks.router';
 import { boardsService } from './boards.service';
 
 export const boardsRouter = Router();
+
+boardsRouter.use('/:boardId/tasks', tasksRouter);
 
 boardsRouter
   .route('/')
@@ -9,7 +12,6 @@ boardsRouter
     try {
       const response = await boardsService.getAll();
       res.json(response);
-      res.send('all');
     } catch (e) {
       res.status(400).send((e as Error).message);
     }
@@ -52,7 +54,3 @@ boardsRouter
       res.status(400).send((e as Error).message);
     }
   });
-
-// boardsRouter.use('/tasks', function (req, res) {
-//   res.send('Tasks');
-// });
