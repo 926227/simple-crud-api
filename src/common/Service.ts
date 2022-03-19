@@ -1,7 +1,20 @@
 type FuncWithData<requestT, responseT> = (
   data: requestT
 ) => Promise<responseT | undefined>;
+
 type FuncWithNoData<requestT> = () => Promise<requestT | undefined>;
+
+type MiddlewareFunction = (data: any) => Promise<any>
+
+type FunctionWithUse<Req, Res> = {
+  (data: Req): Promise<Res | undefined>;
+  use: (func: MiddlewareFunction) => void;
+}
+
+type FunctionNoReqWithUse<Res> = {
+  (): Promise<Res | undefined>;
+  use: (func: MiddlewareFunction) => void;
+}
 
 interface CRUDServiceInterface<
   getAllRes,
@@ -13,7 +26,7 @@ interface CRUDServiceInterface<
   updateRes,
   delReq,
   delRes
-> {
+  > {
   getAll: () => Promise<getAllRes | undefined>;
   get: (data: getReq) => Promise<getRes | undefined>;
   create: (data: createReq) => Promise<createRes | undefined>;
@@ -23,13 +36,13 @@ interface CRUDServiceInterface<
 
 class Service {
   private mainFunction: Function;
-  protected middlewares: Array<() => Promise<void>> = [];
+  protected middlewares: Array<MiddlewareFunction> = [];
 
   constructor(mainFunction: Function) {
     this.mainFunction = mainFunction;
   }
 
-  public use = (func: () => Promise<void>): void => {
+  public use = (func: MiddlewareFunction): void => {
     this.middlewares.push(func);
   };
 
@@ -38,7 +51,7 @@ class Service {
   };
 
   protected runMainFunction = async (data?: any): Promise<any> => {
-    this.middlewares.forEach(async (middleware) => await middleware());
+    this.middlewares.forEach(async (middleware) => await middleware(data));
     return await this.mainFunction(data);
   };
 }
@@ -73,12 +86,12 @@ export class CRUDService<
   updateRes,
   delReq,
   delRes
-> {
-  getAll: () => Promise<getAllRes | undefined>;
-  get: (data: getReq) => Promise<getRes | undefined>;
-  create: (data: createReq) => Promise<createRes | undefined>;
-  update: (data: updateReq) => Promise<updateRes | undefined>;
-  del: (data: delReq) => Promise<delRes | undefined>;
+  > {
+  getAll: FunctionNoReqWithUse<getAllRes>;
+  get: FunctionWithUse<getReq, getRes>;
+  create: FunctionWithUse<createReq, createRes>;
+  update: FunctionWithUse<updateReq, updateRes>;
+  del: FunctionWithUse<delReq, delRes>;
 
   constructor({
     getAll,
@@ -97,10 +110,24 @@ export class CRUDService<
     delReq,
     delRes
   >) {
-    this.getAll = new ServiceNoRequest(getAll).run;
-    this.get = new ServiceWithRequest(get).run;
-    this.create = new ServiceWithRequest(create).run;
-    this.update = new ServiceWithRequest(update).run;
-    this.del = new ServiceWithRequest(del).run;
+    this.getAll = withUse(new ServiceNoRequest(getAll)) as FunctionNoReqWithUse<getAllRes>;
+    this.get = withUse(new ServiceWithRequest(get));
+    this.create = withUse(new ServiceWithRequest(create));
+    this.update = withUse(new ServiceWithRequest(update));
+    this.del = withUse(new ServiceWithRequest(del));
   }
+}
+
+const withUse = <Req, Res>(service: ServiceNoRequest<Res> | ServiceWithRequest<Req, Res>): FunctionNoReqWithUse<Res> | FunctionWithUse<Req, Res> => {
+
+  if (service instanceof ServiceNoRequest) {
+    const s = service.run as FunctionNoReqWithUse<Res>
+    s.use = service.use
+    return s
+  } else {
+    const s = service.run as FunctionWithUse<Req, Res>
+    s.use = service.use
+    return s
+  }
+
 }
