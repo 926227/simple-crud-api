@@ -3,4 +3,4 @@ export { getAllByBoardId } from './getAllByBoardId';
 export { create } from './create';
 export { get } from './get';
 export { update } from './update';
-export { del } from './delete';
+export { del } from './del';
